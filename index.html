@@ -182,5 +182,4 @@
 
   <script>
     // 處理選項卡點擊高亮效果
-
-    
+const options = document.querySelectorAll('.option');options.forEach(option => {const input = option.querySelector('input');if (input.checked) option.classList.add('selected');option.addEventListener('click', () => {options.forEach(opt => opt.classList.remove('selected'));option.classList.add('selected');});});// 前端表單提交效果模擬document.getElementById('rsvpForm').addEventListener('submit', function(e) {e.preventDefault();const statusDiv = document.getElementById('formStatus');const name = document.getElementById('nameInput').value;const attendance = document.querySelector('input[name="attendance"]:checked').value;if (name.trim() === "") {statusDiv.className = "form-status error";statusDiv.innerText = "Please fill in your name.";} else {statusDiv.className = "form-status success";if (attendance === 'yes') {statusDiv.innerText = Thank you, ${name}! Your response has been saved. See you on August 21st! 🎉;} else {statusDiv.innerText = Thank you for letting me know, ${name}. You will be missed! ❤️;}}});
