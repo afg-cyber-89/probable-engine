@@ -11,6 +11,7 @@ name="theme-color"
 content="#fbf7ee"
 >
 <title>Adrianne's Birthday Night</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@27.0.10/build/css/intlTelInput.css">
 <style>
 :root {
 --paper: #fbf7ee;
@@ -433,26 +434,62 @@ box-shadow:
 0 0 0 3px rgba(237, 120, 154, 0.13);
 }
 /* PHONE */
-.phone-fields {
-display: grid;
-grid-template-columns:
-minmax(125px, 0.38fr)
-minmax(0, 1fr);
-gap: 10px;
+.iti {
+  width: 100%;
 }
-.country-code-input {
-padding-right: 32px;
-cursor: pointer;
+
+.iti__tel-input {
+  width: 100%;
+  min-height: 54px;
+  color: var(--ink);
+  background: rgba(255, 252, 247, 0.78);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  outline: none;
+  box-shadow: 0 5px 15px rgba(76, 52, 42, 0.04);
+  font-family: Georgia, "Times New Roman", "Noto Serif", serif;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
+
+.iti__tel-input:focus {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(237, 120, 154, 0.13);
+}
+
+.iti__country-container {
+  padding-left: 4px;
+}
+
+.iti__selected-country {
+  border-radius: 13px 0 0 13px;
+}
+
+.iti__dropdown-content {
+  color: #28534f;
+  background: #fffdf8;
+  border: 1px solid rgba(190, 93, 118, 0.3);
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+.iti__country-list {
+  max-height: 300px;
+}
+
+.iti__search-input {
+  padding: 12px;
+  color: #28534f;
+  background: #fffdf8;
+  border: 1px solid rgba(190, 93, 118, 0.3);
+  border-radius: 8px;
+}
+
 .field-help {
-margin: 7px 5px 0;
-color: var(--muted);
-font-family:
-Arial,
-Helvetica,
-sans-serif;
-font-size: 0.7rem;
-line-height: 1.4;
+  margin: 7px 5px 0;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.7rem;
+  line-height: 1.4;
 }
 /* RSVP OPTIONS */
 .options {
@@ -671,18 +708,6 @@ border-left: 0;
 }
 .details-grid.two-columns {
 grid-template-columns: 1fr 1fr;
-}
-.phone-fields {
-grid-template-columns:
-112px
-minmax(0, 1fr);
-gap: 8px;
-}
-.country-code-input,
-.phone-input {
-padding-right: 11px;
-padding-left: 11px;
-font-size: 0.9rem;
 }
 .map-button {
 padding-right: 15px;
@@ -1103,124 +1128,24 @@ required
 </div>
 <!-- PHONE -->
 <div class="field">
-<label
-class="field-label"
-for="phone"
->
+<label class="field-label" for="phone">
 Phone number
 <span class="required-mark">*</span>
 </label>
-<div class="phone-fields">
-<select
-class="select-input country-code-input"
-id="countryCode"
-name="countryCode"
-aria-label="Country code"
-required
->
-<option
-value=""
-disabled
->
-Code
-</option>
-<option value="+886" selected>
-���� +886
-</option>
-<option value="+65">
-���� +65
-</option>
-<option value="+81">
-���� +81
-</option>
-<option value="+82">
-���� +82
-</option>
-<option value="+852">
-���� +852
-</option>
-<option value="+853">
-���� +853
-</option>
-<option value="+60">
-���� +60
-</option>
-<option value="+66">
-���� +66
-</option>
-<option value="+63">
-���� +63
-</option>
-<option value="+84">
-���� +84
-</option>
-<option value="+62">
-���� +62
-</option>
-<option value="+91">
-���� +91
-</option>
-<option value="+44">
-���� +44
-</option>
-<option value="+370">
-���� +370
-</option>
-<option value="+371">
-���� +371
-</option>
-<option value="+372">
-���� +372
-</option>
-<option value="+41">
-���� +41
-</option>
-<option value="+43">
-���� +43
-</option>
-<option value="+49">
-���� +49
-</option>
-<option value="+33">
-���� +33
-</option>
-<option value="+39">
-���� +39
-</option>
-<option value="+34">
-���� +34
-</option>
-<option value="+31">
-���� +31
-</option>
-<option value="+1">
-����/���� +1
-</option>
-<option value="+61">
-���� +61
-</option>
-<option value="+64">
-���� +64
-</option>
-</select>
 <input
 class="text-input phone-input"
 id="phone"
 name="phone"
 type="tel"
 inputmode="tel"
-autocomplete="tel-national"
-maxlength="20"
-placeholder="912 345 678"
+autocomplete="tel"
+maxlength="30"
+placeholder="Phone number"
 aria-describedby="phoneHelp"
 required
 >
-</div>
-<p
-class="field-help"
-id="phoneHelp"
->
-Enter your number without the country code.
+<p class="field-help" id="phoneHelp">
+Select your country and enter your phone number.
 </p>
 </div>
 <!-- ATTENDANCE -->
@@ -1359,13 +1284,14 @@ Can’t wait to celebrate with you!
 </span>
 </footer>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@27.0.10/build/js/intlTelInput.min.js"></script>
 <script>
 /*
  * Paste the /exec URL from your Apps Script web-app deployment here.
  * Keep Code.gs in Apps Script; only index.html and hero.png go to GitHub.
  */
 const RSVP_ENDPOINT =
-  'https://script.google.com/macros/s/AKfycbyQj-BKpK7XF0Yr9Hc8YS2ZUl1sJtaNFANOBndk1DfmkSSaKrXJv9zRpc131xu8Uu5CJQ/exec';
+  'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
 
 const form =
 document.getElementById('rsvpForm');
@@ -1375,19 +1301,20 @@ const formStatus =
 document.getElementById('formStatus');
 const phoneInput =
 document.getElementById('phone');
+
+const phonePicker = window.intlTelInput(phoneInput, {
+  initialCountry: 'tw',
+  separateDialCode: true,
+  countrySearch: true,
+  loadUtils: function () {
+    return import(
+      'https://cdn.jsdelivr.net/npm/intl-tel-input@27.0.10/build/js/utils.js'
+    );
+  }
+});
 const attendanceInputs =
 document.querySelectorAll(
 'input[name="attendance"]'
-);
-/**
-* 限制電話欄位只輸入電話常用字元
-*/
-phoneInput.addEventListener(
-'input',
-function () {
-this.value = this.value.replace(
-/[^\d\s\-()]/g,
-''
 );
 }
 );
@@ -1424,18 +1351,24 @@ event.preventDefault();
 if (!form.reportValidity()) {
 return;
 }
+
+if (!phonePicker.isValidNumber()) {
+  formStatus.className = 'form-status error';
+  formStatus.textContent = 'Please enter a valid phone number.';
+  phoneInput.focus();
+  return;
+}
+
 const formData =
 new FormData(form);
 const payload = {
 name: String(
 formData.get('name') || ''
 ).trim(),
-countryCode: String(
-formData.get('countryCode') || ''
-).trim(),
-phone: String(
-formData.get('phone') || ''
-).trim(),
+countryCode: phonePicker.getSelectedCountryData().dialCode
+  ? `+${phonePicker.getSelectedCountryData().dialCode}`
+  : '',
+phone: String(phoneInput.value || '').trim(),
 attendance: String(
 formData.get('attendance') || ''
 ),
@@ -1496,6 +1429,7 @@ result && result.message
 ? result.message
 : 'Your RSVP has been submitted.';
 form.reset();
+phonePicker.setCountry('tw');
 updateSelectedOptions();
 formStatus.scrollIntoView({
 behavior: 'smooth',
