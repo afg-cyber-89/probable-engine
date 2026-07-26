@@ -134,256 +134,388 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@29.1.2/dist/js/intlTelInput.min.js"></script>
-  <script>
-    const form=document.getElementById("rsvpForm");
-    const phoneInput=document.getElementById("phone");
-    const phoneFullInput=document.getElementById("phoneFull");
-    const countryCodeInput=document.getElementById("countryCode");
-    const countryIso2Input=document.getElementById("countryIso2");
-    const phoneError=document.getElementById("phoneError");
-    const submitButton=document.getElementById("submitButton");
-    const formStatus=document.getElementById("formStatus");
-    const submitFrame=document.getElementById("submit-frame");
-    const attendanceInputs=document.querySelectorAll('input[name="attendance"]');
-    let submitting=false,submitCompleted=false;
 
-    const phone=window.intlTelInput(phoneInput,{
-      initialCountry:"tw",
-      countrySearch:true,
-      countrySelectorMode:"AUTO",
-      separateDialCode:true,
-      strictMode:true,
-      countryOrder:["tw","sg","jp","kr","hk","gb","us","au"],
-      loadUtils:()=>import("https://cdn.jsdelivr.net/npm/intl-tel-input@29.1.2/dist/js/utils.js")
-    });
+<script>
+  const form = document.getElementById("rsvpForm");
+  const phoneInput = document.getElementById("phone");
+  const phoneFullInput = document.getElementById("phoneFull");
+  const countryCodeInput = document.getElementById("countryCode");
+  const countryIso2Input = document.getElementById("countryIso2");
+  const phoneError = document.getElementById("phoneError");
+  const submitButton = document.getElementById("submitButton");
+  const formStatus = document.getElementById("formStatus");
+  const submitFrame = document.getElementById("submit-frame");
 
-    attendanceInputs.forEach(input=>input.addEventListener("change",updateSelectedOptions));
-    function updateSelectedOptions(){document.querySelectorAll(".option").forEach(option=>{const radio=option.querySelector('input[type="radio"]');option.classList.toggle("selected",Boolean(radio?.checked));});}
-    function setStatus(type,message){formStatus.className=`form-status ${type}`;formStatus.textContent=message;}
-    function clearStatus(){formStatus.className="form-status";formStatus.textContent="";}
-    function setSubmitting(value){submitting=value;submitButton.disabled=value;submitButton.textContent=value?"Submitting…":"Confirm RSVP";}
+  const attendanceInputs = document.querySelectorAll(
+    'input[name="attendance"]'
+  );
 
-submitButton.addEventListener("click", submitRsvp);
+  let submitting = false;
+  let submitCompleted = false;
 
-async function submitRsvp() {
-  clearStatus();
-  phoneError.classList.remove("visible");
+  /*
+   * 初始化國際電話欄位
+   */
+  const phone = window.intlTelInput(phoneInput, {
+    initialCountry: "tw",
+    countrySearch: true,
+    countrySelectorMode: "AUTO",
+    separateDialCode: true,
+    strictMode: true,
 
-  const nameInput =
-    document.getElementById("name");
+    countryOrder: [
+      "tw",
+      "sg",
+      "jp",
+      "kr",
+      "hk",
+      "gb",
+      "us",
+      "au"
+    ],
 
-  const attendanceInput =
-    document.querySelector(
-      'input[name="attendance"]:checked'
-    );
-
-  const guestCountInput =
-    document.getElementById("guestCount");
-
-  if (!nameInput.value.trim()) {
-    setStatus(
-      "error",
-      "Please enter your name."
-    );
-
-    nameInput.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-
-    setTimeout(function () {
-      nameInput.focus();
-    }, 300);
-
-    return;
-  }
-
-  if (!phoneInput.value.trim()) {
-    setStatus(
-      "error",
-      "Please enter your phone number."
-    );
-
-    phoneInput.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-
-    setTimeout(function () {
-      phoneInput.focus();
-    }, 300);
-
-    return;
-  }
-
-  try {
-    if (phone.promise) {
-      await phone.promise;
+    loadUtils: function () {
+      return import(
+        "https://cdn.jsdelivr.net/npm/intl-tel-input@29.1.2/dist/js/utils.js"
+      );
     }
-  } catch (error) {
-    console.error(
-      "Phone utilities failed to load:",
-      error
+  });
+
+  /*
+   * RSVP 選項外觀
+   */
+  attendanceInputs.forEach(function (input) {
+    input.addEventListener(
+      "change",
+      updateSelectedOptions
     );
-  }
+  });
 
-  let validPhone = false;
-
-  try {
-    validPhone = phone.isValidNumber();
-  } catch (error) {
-    console.error(
-      "Phone validation failed:",
-      error
-    );
-  }
-
-  if (!validPhone) {
-    phoneError.classList.add("visible");
-
-    setStatus(
-      "error",
-      "Please enter a valid phone number."
-    );
-
-    phoneInput.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-
-    setTimeout(function () {
-      phoneInput.focus();
-    }, 300);
-
-    return;
-  }
-
-  if (!attendanceInput) {
-    setStatus(
-      "error",
-      "Please select which part of the evening you’ll be joining."
-    );
-
+  function updateSelectedOptions() {
     document
-      .querySelector(".options")
-      .scrollIntoView({
+      .querySelectorAll(".option")
+      .forEach(function (option) {
+        const radio = option.querySelector(
+          'input[type="radio"]'
+        );
+
+        option.classList.toggle(
+          "selected",
+          Boolean(radio && radio.checked)
+        );
+      });
+  }
+
+  /*
+   * 顯示表單狀態
+   */
+  function setStatus(type, message) {
+    formStatus.className =
+      "form-status " + type;
+
+    formStatus.textContent = message;
+  }
+
+  function clearStatus() {
+    formStatus.className = "form-status";
+    formStatus.textContent = "";
+  }
+
+  function setSubmitting(value) {
+    submitting = value;
+    submitButton.disabled = value;
+
+    submitButton.textContent = value
+      ? "Submitting…"
+      : "Confirm RSVP";
+  }
+
+  /*
+   * 重設表單
+   */
+  function resetRsvpForm() {
+    form.reset();
+
+    phone.setCountry("tw");
+
+    phoneFullInput.value = "";
+    countryCodeInput.value = "";
+    countryIso2Input.value = "";
+
+    phoneError.classList.remove("visible");
+
+    updateSelectedOptions();
+  }
+
+  /*
+   * 點擊 Confirm RSVP
+   */
+  submitButton.addEventListener(
+    "click",
+    submitRsvp
+  );
+
+  async function submitRsvp() {
+    clearStatus();
+    phoneError.classList.remove("visible");
+
+    const nameInput =
+      document.getElementById("name");
+
+    const attendanceInput =
+      document.querySelector(
+        'input[name="attendance"]:checked'
+      );
+
+    const guestCountInput =
+      document.getElementById("guestCount");
+
+    /*
+     * 姓名驗證
+     */
+    if (!nameInput.value.trim()) {
+      setStatus(
+        "error",
+        "Please enter your name."
+      );
+
+      nameInput.scrollIntoView({
         behavior: "smooth",
         block: "center"
       });
 
-    return;
-  }
+      window.setTimeout(function () {
+        nameInput.focus();
+      }, 300);
 
-  if (!guestCountInput.value) {
-    setStatus(
-      "error",
-      "Please select the total number of guests."
-    );
-
-    return;
-  }
-
-  const endpoint =
-    form.getAttribute("action") || "";
-
-  if (!endpoint) {
-    setStatus(
-      "error",
-      "The RSVP endpoint has not been configured yet."
-    );
-
-    return;
-  }
-
-  const country =
-    phone.getSelectedCountryData();
-
-  phoneFullInput.value =
-    phone.getNumber();
-
-  countryCodeInput.value =
-    country && country.dialCode
-      ? "+" + country.dialCode
-      : "";
-
-  countryIso2Input.value =
-    country && country.iso2
-      ? country.iso2
-      : "";
-
-  setSubmitting(true);
-  submitCompleted = false;
-
-  try {
-    HTMLFormElement.prototype.submit.call(form);
-  } catch (error) {
-    console.error(
-      "RSVP submission failed:",
-      error
-    );
-
-    setSubmitting(false);
-
-    setStatus(
-      "error",
-      "The RSVP could not be submitted. Please try again."
-    );
-
-    return;
-  }
-
-  window.setTimeout(function () {
-    if (submitCompleted) {
       return;
     }
 
-    submitCompleted = true;
-    setSubmitting(false);
+    /*
+     * 電話空白驗證
+     */
+    if (!phoneInput.value.trim()) {
+      setStatus(
+        "error",
+        "Please enter your phone number."
+      );
 
-    setStatus(
-      "success",
-      "Your RSVP has been submitted. See you on my birthday night!"
-    );
+      phoneInput.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
 
-    resetRsvpForm();
-  }, 2000);
-}
+      window.setTimeout(function () {
+        phoneInput.focus();
+      }, 300);
 
-function resetRsvpForm() {
-  form.reset();
-
-  phone.setCountry("tw");
-
-  phoneFullInput.value = "";
-  countryCodeInput.value = "";
-  countryIso2Input.value = "";
-
-  updateSelectedOptions();
-}
-    
-submitFrame.addEventListener(
-  "load",
-  function () {
-    if (!submitting || submitCompleted) {
       return;
     }
 
-    submitCompleted = true;
-    setSubmitting(false);
+    /*
+     * 等待 intl-tel-input utilities 載入
+     */
+    try {
+      if (phone.promise) {
+        await phone.promise;
+      }
+    } catch (error) {
+      console.error(
+        "Phone utilities failed to load:",
+        error
+      );
+    }
 
-    setStatus(
-      "success",
-      "Your RSVP has been submitted. See you on my birthday night!"
-    );
+    /*
+     * 電話有效性驗證
+     */
+    let validPhone = false;
 
-    resetRsvpForm();
+    try {
+      validPhone = phone.isValidNumber();
+    } catch (error) {
+      console.error(
+        "Phone validation failed:",
+        error
+      );
+    }
 
-    formStatus.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
+    if (!validPhone) {
+      phoneError.classList.add("visible");
+
+      setStatus(
+        "error",
+        "Please enter a valid phone number."
+      );
+
+      phoneInput.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      window.setTimeout(function () {
+        phoneInput.focus();
+      }, 300);
+
+      return;
+    }
+
+    /*
+     * 出席選項驗證
+     */
+    if (!attendanceInput) {
+      setStatus(
+        "error",
+        "Please select which part of the evening you’ll be joining."
+      );
+
+      document
+        .querySelector(".options")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+      return;
+    }
+
+    /*
+     * 人數驗證
+     */
+    if (!guestCountInput.value) {
+      setStatus(
+        "error",
+        "Please select the total number of guests."
+      );
+
+      guestCountInput.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      return;
+    }
+
+    /*
+     * Apps Script endpoint 驗證
+     */
+    const endpoint =
+      form.getAttribute("action") || "";
+
+    if (
+      !endpoint ||
+      endpoint.includes(
+        "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE"
+      )
+    ) {
+      setStatus(
+        "error",
+        "The RSVP endpoint has not been configured yet."
+      );
+
+      return;
+    }
+
+    /*
+     * 寫入完整國際電話
+     */
+    const country =
+      phone.getSelectedCountryData();
+
+    phoneFullInput.value =
+      phone.getNumber();
+
+    countryCodeInput.value =
+      country && country.dialCode
+        ? "+" + country.dialCode
+        : "";
+
+    countryIso2Input.value =
+      country && country.iso2
+        ? country.iso2
+        : "";
+
+    /*
+     * 送出表單
+     */
+    setSubmitting(true);
+    submitCompleted = false;
+
+    try {
+      HTMLFormElement.prototype.submit.call(
+        form
+      );
+    } catch (error) {
+      console.error(
+        "RSVP submission failed:",
+        error
+      );
+
+      setSubmitting(false);
+
+      setStatus(
+        "error",
+        "The RSVP could not be submitted. Please try again."
+      );
+
+      return;
+    }
+
+    /*
+     * iframe 未正常回報時的備援
+     */
+    window.setTimeout(function () {
+      if (submitCompleted) {
+        return;
+      }
+
+      submitCompleted = true;
+      setSubmitting(false);
+
+      setStatus(
+        "success",
+        "Your RSVP has been submitted. See you on my birthday night!"
+      );
+
+      resetRsvpForm();
+
+      formStatus.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 2500);
   }
-);
-  </script>
+
+  /*
+   * Apps Script 回傳至隱藏 iframe
+   */
+  submitFrame.addEventListener(
+    "load",
+    function () {
+      if (
+        !submitting ||
+        submitCompleted
+      ) {
+        return;
+      }
+
+      submitCompleted = true;
+      setSubmitting(false);
+
+      setStatus(
+        "success",
+        "Your RSVP has been submitted. See you on my birthday night!"
+      );
+
+      resetRsvpForm();
+
+      formStatus.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  );
+</script>
+
 </body>
 </html>
