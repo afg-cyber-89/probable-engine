@@ -124,7 +124,7 @@
 
         <div class="field"><label class="field-label" for="guestCount">Total number of guests <span class="required-mark">*</span></label><select class="select-input" id="guestCount" name="guestCount" required><option value="1">1 — Just me</option><option value="2">2 — Me + 1 guest</option><option value="3">3 people</option><option value="4">4 people</option><option value="5">5 people</option></select></div>
         <div class="field"><label class="field-label" for="note">Note — optional</label><textarea class="note-input" id="note" name="note" maxlength="500" placeholder="Dietary requirements or anything I should know"></textarea></div>
-        <button class="submit-button" id="submitButton" type="submit">Confirm RSVP</button>
+        <button class="submit-button" id="submitButton" type="button">Confirm RSVP</button>
         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
       </form>
       <iframe id="submit-frame" name="submit-frame" title="RSVP submission"></iframe>
@@ -163,28 +163,227 @@
     function clearStatus(){formStatus.className="form-status";formStatus.textContent="";}
     function setSubmitting(value){submitting=value;submitButton.disabled=value;submitButton.textContent=value?"Submitting…":"Confirm RSVP";}
 
-    form.addEventListener("submit",async event=>{
-      event.preventDefault();clearStatus();phoneError.classList.remove("visible");
-      if(form.action.includes("PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE")){setStatus("error","The RSVP endpoint has not been configured yet.");return;}
-      if(!form.checkValidity()){form.reportValidity();return;}
-      try{await phone.promise;}catch(error){console.error(error);}
-      if(!phone.isValidNumber()){phoneError.classList.add("visible");phoneInput.focus();return;}
-      const country=phone.getSelectedCountryData();
-      phoneFullInput.value=phone.getNumber();
-      countryCodeInput.value=country?.dialCode?`+${country.dialCode}`:"";
-      countryIso2Input.value=country?.iso2||"";
-      setSubmitting(true);submitCompleted=false;
-      HTMLFormElement.prototype.submit.call(form);
-      window.setTimeout(()=>{
-        if(!submitCompleted){submitCompleted=true;setSubmitting(false);setStatus("success","Your RSVP has been submitted. See you on my birthday night!");form.reset();phone.setCountry("tw");updateSelectedOptions();}
-      },1800);
+submitButton.addEventListener("click", submitRsvp);
+
+async function submitRsvp() {
+  clearStatus();
+  phoneError.classList.remove("visible");
+
+  const nameInput =
+    document.getElementById("name");
+
+  const attendanceInput =
+    document.querySelector(
+      'input[name="attendance"]:checked'
+    );
+
+  const guestCountInput =
+    document.getElementById("guestCount");
+
+  if (!nameInput.value.trim()) {
+    setStatus(
+      "error",
+      "Please enter your name."
+    );
+
+    nameInput.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
     });
 
-    submitFrame.addEventListener("load",()=>{
-      if(!submitting||submitCompleted)return;
-      submitCompleted=true;setSubmitting(false);setStatus("success","Your RSVP has been submitted. See you on my birthday night!");form.reset();phone.setCountry("tw");updateSelectedOptions();
-      formStatus.scrollIntoView({behavior:"smooth",block:"center"});
+    setTimeout(function () {
+      nameInput.focus();
+    }, 300);
+
+    return;
+  }
+
+  if (!phoneInput.value.trim()) {
+    setStatus(
+      "error",
+      "Please enter your phone number."
+    );
+
+    phoneInput.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
     });
+
+    setTimeout(function () {
+      phoneInput.focus();
+    }, 300);
+
+    return;
+  }
+
+  try {
+    if (phone.promise) {
+      await phone.promise;
+    }
+  } catch (error) {
+    console.error(
+      "Phone utilities failed to load:",
+      error
+    );
+  }
+
+  let validPhone = false;
+
+  try {
+    validPhone = phone.isValidNumber();
+  } catch (error) {
+    console.error(
+      "Phone validation failed:",
+      error
+    );
+  }
+
+  if (!validPhone) {
+    phoneError.classList.add("visible");
+
+    setStatus(
+      "error",
+      "Please enter a valid phone number."
+    );
+
+    phoneInput.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+    setTimeout(function () {
+      phoneInput.focus();
+    }, 300);
+
+    return;
+  }
+
+  if (!attendanceInput) {
+    setStatus(
+      "error",
+      "Please select which part of the evening you’ll be joining."
+    );
+
+    document
+      .querySelector(".options")
+      .scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    return;
+  }
+
+  if (!guestCountInput.value) {
+    setStatus(
+      "error",
+      "Please select the total number of guests."
+    );
+
+    return;
+  }
+
+  const endpoint =
+    form.getAttribute("action") || "";
+
+  if (!endpoint) {
+    setStatus(
+      "error",
+      "The RSVP endpoint has not been configured yet."
+    );
+
+    return;
+  }
+
+  const country =
+    phone.getSelectedCountryData();
+
+  phoneFullInput.value =
+    phone.getNumber();
+
+  countryCodeInput.value =
+    country && country.dialCode
+      ? "+" + country.dialCode
+      : "";
+
+  countryIso2Input.value =
+    country && country.iso2
+      ? country.iso2
+      : "";
+
+  setSubmitting(true);
+  submitCompleted = false;
+
+  try {
+    HTMLFormElement.prototype.submit.call(form);
+  } catch (error) {
+    console.error(
+      "RSVP submission failed:",
+      error
+    );
+
+    setSubmitting(false);
+
+    setStatus(
+      "error",
+      "The RSVP could not be submitted. Please try again."
+    );
+
+    return;
+  }
+
+  window.setTimeout(function () {
+    if (submitCompleted) {
+      return;
+    }
+
+    submitCompleted = true;
+    setSubmitting(false);
+
+    setStatus(
+      "success",
+      "Your RSVP has been submitted. See you on my birthday night!"
+    );
+
+    resetRsvpForm();
+  }, 2000);
+}
+
+function resetRsvpForm() {
+  form.reset();
+
+  phone.setCountry("tw");
+
+  phoneFullInput.value = "";
+  countryCodeInput.value = "";
+  countryIso2Input.value = "";
+
+  updateSelectedOptions();
+}
+    
+submitFrame.addEventListener(
+  "load",
+  function () {
+    if (!submitting || submitCompleted) {
+      return;
+    }
+
+    submitCompleted = true;
+    setSubmitting(false);
+
+    setStatus(
+      "success",
+      "Your RSVP has been submitted. See you on my birthday night!"
+    );
+
+    resetRsvpForm();
+
+    formStatus.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+);
   </script>
 </body>
 </html>
