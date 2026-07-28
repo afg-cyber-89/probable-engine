@@ -72,7 +72,38 @@
   <script>
     const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyQj-BKpK7XF0Yr9Hc8YS2ZUl1sJtaNFANOBndk1DfmkSSaKrXJv9zRpc131xu8Uu5CJQ/exec";
     const form=document.getElementById("rsvpForm"),phoneInput=document.getElementById("phone"),phoneError=document.getElementById("phoneError"),submitButton=document.getElementById("submitButton"),formStatus=document.getElementById("formStatus");
-    const iti=window.intlTelInput(phoneInput,{initialCountry:"tw",separateDialCode:true,strictMode:true,countrySearch:true,loadUtils:()=>import("https://cdn.jsdelivr.net/npm/intl-tel-input@29.1.0/dist/js/utils.js")});
+
+    // 防呆：intl-tel-input 是從 CDN 載入的外部函式庫，若網路/防火牆/瀏覽器把它擋掉，
+    // window.intlTelInput 會是 undefined。過去的寫法會在這裡直接丟出例外，
+    // 導致下面「幫 Confirm RSVP 綁定 submit 事件」的程式碼整段不會執行——
+    // 按鈕看起來就會「完全沒反應」。這裡改成失敗時退回一個陽春的相容物件，
+    // 讓表單照樣可以送出（只是不會有國碼選單與號碼格式驗證）。
+    let iti;
+    if (typeof window.intlTelInput === "function") {
+      try {
+        iti = window.intlTelInput(phoneInput, {
+          initialCountry: "tw",
+          separateDialCode: true,
+          strictMode: true,
+          countrySearch: true,
+          loadUtils: () => import("https://cdn.jsdelivr.net/npm/intl-tel-input@29.1.0/dist/js/utils.js"),
+        });
+      } catch (err) {
+        console.error("intl-tel-input init failed, falling back to plain input:", err);
+      }
+    } else {
+      console.warn("intl-tel-input library did not load (CDN blocked?) — falling back to plain phone input.");
+    }
+    if (!iti) {
+      iti = {
+        promise: Promise.resolve(),
+        isValidNumber: () => phoneInput.value.trim().length > 0,
+        getNumber: () => phoneInput.value.trim(),
+        getSelectedCountryData: () => ({ dialCode: "886", iso2: "tw" }),
+        setCountry: () => {},
+      };
+    }
+
     document.querySelectorAll('input[name="attendance"]').forEach(i=>i.addEventListener("change",()=>document.querySelectorAll(".option").forEach(o=>o.classList.toggle("selected",o.querySelector("input").checked))));
     function status(type,msg){formStatus.className=`form-status ${type}`;formStatus.textContent=msg;formStatus.scrollIntoView({behavior:"smooth",block:"center"})}
     form.addEventListener("submit",async e=>{e.preventDefault();phoneError.style.display="none";if(!form.reportValidity())return;await iti.promise;if(!iti.isValidNumber()){phoneError.style.display="block";phoneInput.focus();return}if(APPS_SCRIPT_URL.includes("PASTE_YOUR")){status("error","Please add your Apps Script Web App URL in index.html first.");return}const fd=new FormData(form),c=iti.getSelectedCountryData(),body=new URLSearchParams({name:String(fd.get("name")||"").trim(),phone:iti.getNumber(),countryCode:c.dialCode?`+${c.dialCode}`:"",countryIso2:c.iso2||"",attendance:String(fd.get("attendance")||""),guestCount:String(fd.get("guestCount")||"1"),note:String(fd.get("note")||"").trim()});submitButton.disabled=true;submitButton.textContent="Submitting…";try{await fetch(APPS_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:body.toString()});form.reset();iti.setCountry("tw");document.querySelectorAll(".option").forEach(o=>o.classList.remove("selected"));status("success","You’re on the list. See you on my birthday night!")}catch(err){console.error(err);status("error","Your RSVP could not be submitted. Please try again.")}finally{submitButton.disabled=false;submitButton.textContent="Confirm RSVP"}});
