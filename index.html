@@ -60,7 +60,10 @@
           <label class="option"><input type="radio" name="attendance" value="both" required><span class="radio-ui"></span><span>Dinner + OTO</span></label>
           <label class="option"><input type="radio" name="attendance" value="unavailable" required><span class="radio-ui"></span><span>Sorry, I can’t make it</span></label>
         </div></div>
-        <div class="field"><label class="field-label" for="guestCount">Total number of guests <span class="required-mark">*</span></label><select class="select-input" id="guestCount" name="guestCount" required><option value="1">1 — Just me</option><option value="2">2 — Me + 1 guest</option><option value="3">3 people</option><option value="4">4 people</option><option value="5">5 people</option></select></div>
+        <div class="field"><label class="field-label" for="guestCount">Total number of guests <span class="required-mark">*</span></label><select class="select-input" id="guestCount" name="guestCount" required>
+  <option value="1">Just me</option>
+  <option value="2">Me + 1 guest</option>
+</select></div>
         <div class="field"><label class="field-label" for="note">Note — optional</label><textarea class="note-input" id="note" name="note" maxlength="500" placeholder="Dietary requirements or anything I should know"></textarea></div>
         <button class="submit-button" id="submitButton" type="submit">Confirm RSVP</button>
         <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
