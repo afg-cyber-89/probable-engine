@@ -36,7 +36,7 @@
       <div class="details-grid">
         <div class="detail"><span class="detail-label">Dinner date</span><span class="detail-value">21st August 2026</span></div>
         <div class="detail"><span class="detail-label">Dinner time</span><span class="detail-value">20:00</span></div>
-        <div class="detail"><span class="detail-label">Location</span><span class="detail-value">Restaurant TB</span></div>
+        <div class="detail"><span class="detail-label">Location</span><span class="detail-value">TBD</span></div>
       </div>
       <a class="map-button" href="https://maps.app.goo.gl/8HA2igBLyyEvhL4j9" target="_blank" rel="noopener noreferrer"><span class="map-icon"></span><span class="map-label">View Dinner on Google Maps</span><span class="map-arrow">›</span></a>
     </section>
@@ -99,14 +99,14 @@
         promise: Promise.resolve(),
         isValidNumber: () => phoneInput.value.trim().length > 0,
         getNumber: () => phoneInput.value.trim(),
-        getSelectedCountryData: () => ({ dialCode: "886", iso2: "tw" }),
-        setCountry: () => {},
+        getSelectedCountry: () => ({ dialCode: "886", iso2: "tw" }),
+        setSelectedCountry: () => {},
       };
     }
 
     document.querySelectorAll('input[name="attendance"]').forEach(i=>i.addEventListener("change",()=>document.querySelectorAll(".option").forEach(o=>o.classList.toggle("selected",o.querySelector("input").checked))));
     function status(type,msg){formStatus.className=`form-status ${type}`;formStatus.textContent=msg;formStatus.scrollIntoView({behavior:"smooth",block:"center"})}
-    form.addEventListener("submit",async e=>{e.preventDefault();phoneError.style.display="none";if(!form.reportValidity())return;await iti.promise;if(!iti.isValidNumber()){phoneError.style.display="block";phoneInput.focus();return}if(APPS_SCRIPT_URL.includes("PASTE_YOUR")){status("error","Please add your Apps Script Web App URL in index.html first.");return}const fd=new FormData(form),c=iti.getSelectedCountryData(),body=new URLSearchParams({name:String(fd.get("name")||"").trim(),phone:iti.getNumber(),countryCode:c.dialCode?`+${c.dialCode}`:"",countryIso2:c.iso2||"",attendance:String(fd.get("attendance")||""),guestCount:String(fd.get("guestCount")||"1"),note:String(fd.get("note")||"").trim()});submitButton.disabled=true;submitButton.textContent="Submitting…";try{await fetch(APPS_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:body.toString()});form.reset();iti.setCountry("tw");document.querySelectorAll(".option").forEach(o=>o.classList.remove("selected"));status("success","You’re on the list. See you on my birthday night!")}catch(err){console.error(err);status("error","Your RSVP could not be submitted. Please try again.")}finally{submitButton.disabled=false;submitButton.textContent="Confirm RSVP"}});
+    form.addEventListener("submit",async e=>{e.preventDefault();phoneError.style.display="none";if(!form.reportValidity())return;await iti.promise;if(!iti.isValidNumber()){phoneError.style.display="block";phoneInput.focus();return}if(APPS_SCRIPT_URL.includes("PASTE_YOUR")){status("error","Please add your Apps Script Web App URL in index.html first.");return}const fd=new FormData(form),c=iti.getSelectedCountry()||{},body=new URLSearchParams({name:String(fd.get("name")||"").trim(),phone:iti.getNumber(),countryCode:c.dialCode?`+${c.dialCode}`:"",countryIso2:c.iso2||"",attendance:String(fd.get("attendance")||""),guestCount:String(fd.get("guestCount")||"1"),note:String(fd.get("note")||"").trim()});submitButton.disabled=true;submitButton.textContent="Submitting…";try{await fetch(APPS_SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:body.toString()});form.reset();iti.setSelectedCountry("tw");document.querySelectorAll(".option").forEach(o=>o.classList.remove("selected"));status("success","You’re on the list. See you on my birthday night!")}catch(err){console.error(err);status("error","Your RSVP could not be submitted. Please try again.")}finally{submitButton.disabled=false;submitButton.textContent="Confirm RSVP"}});
   </script>
 </body>
 </html>
